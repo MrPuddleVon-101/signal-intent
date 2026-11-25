@@ -1,0 +1,10 @@
+node_modules
+dist
+.DS_Store
+.claude
+public/README.txt
+source-images
+docs-PROGRESS.md
+.preview
+__pycache__
+*.tsbuildinfo
