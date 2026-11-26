@@ -37,6 +37,8 @@ export class World {
   private mx = 0; private my = 0; private born = 0; private placement = 0; private loose = 0; private pinch = 0
   private key = new THREE.DirectionalLight('#ffffff', 2.2); private back = new THREE.DirectionalLight('#9db4ff', 2)
   readonly torch = new THREE.PointLight('#e8eeff', 0, 14, 1.6)
+  /** underground, the screens light your arm */
+  private glow = new THREE.DirectionalLight('#ffffff', 0); private rim = new THREE.DirectionalLight('#9fb4ff', 0)
   lit = -1; drag = false; private hit = 0; private vel = 0
   private last = performance.now(); private warmup = 0; private wasPlaying = false
   private times: number[] = []; private before = 0; private qBefore = 1; private locked = false
@@ -55,7 +57,7 @@ export class World {
     this.post = new Post(this.r, this.mobile ? 2 : 4)
     this.envs = [buildEnvironment(this.r, false), buildEnvironment(this.r, true)]; this.scene.environment = this.envs[0]; this.scene.environmentIntensity = 1
     this.key.position.set(-4, 6, 7); this.back.position.set(5, 2, -6)
-    this.scene.add(this.key, this.back, this.rig, this.band.group, this.lines.group, this.gallery.ladder, this.gallery.cavern, this.forms.group, this.portraits.group, this.reveal.mesh, this.torch)
+    this.scene.add(this.key, this.back, this.rig, this.band.group, this.lines.group, this.gallery.ladder, this.gallery.cavern, this.forms.group, this.portraits.group, this.reveal.mesh, this.torch, this.glow, this.rim); this.glow.target = this.rig; this.rim.target = this.rig
     this.rig.add(this.hand.group)
     addEventListener('resize', this.resize)
     addEventListener('pointermove', (e) => { this.moved = e.pointerType !== 'touch'; pointer.x = (e.clientX / innerWidth) * 2 - 1; pointer.y = -(e.clientY / innerHeight) * 2 + 1 }, { passive: true })
@@ -148,7 +150,7 @@ export class World {
     const L = live(now), env = liveEnvelope(now)
     this.pose(S.playing && S.trial ? S.trial.config.requestedGesture : 'rest', L.t, S.playing && S.trial ? S.trial.config.intensity : 1, dt)
     const br = calm ? 0 : Math.sin(now / 2100) * 0.012
-    this.rig.rotation.set(s.arx + br - this.my * 0.06, s.ary + this.mx * 0.09, s.arz + br * 0.7, 'ZYX'); this.rig.updateMatrixWorld(true)
+    this.rig.rotation.set(s.arx + br - this.my * 0.06, s.ary + this.mx * 0.09, s.arz + br * 0.7, 'ZYX'); if (s.ap) this.rig.quaternion.premultiply(this.qa.setFromAxisAngle(this.X, s.ap)); this.rig.position.set(s.ax, s.ay, s.az); this.rig.scale.setScalar(s.as); this.rig.updateMatrixWorld(true)
     this.hand.updateMats()
 
     // band: wrist transform, free transform, and the blend between them
@@ -157,9 +159,9 @@ export class World {
     this.qb.setFromEuler(this.e.set(s.brx + this.my * -0.05, s.bry + this.mx * 0.08, s.brz, 'ZYX'))
     const f = smooth(0, 1, s.bf), g = this.band.group
     g.quaternion.copy(this.qa).slerp(this.qb, f)
-    this.pA.set(-this.loose * 0.12, -this.loose * 0.06, 0).applyQuaternion(this.rig.quaternion)
+    this.pA.set(-this.loose * 0.12, -this.loose * 0.06, 0).applyQuaternion(this.rig.quaternion).multiplyScalar(s.as).add(this.rig.position)
     g.position.set(this.pA.x + (s.bx - this.pA.x) * f, this.pA.y + (s.by - this.pA.y) * f, this.pA.z + (s.bz - this.pA.z) * f)
-    const bs = (1 + (s.bs - 1) * f) * Math.max(0.0001, smooth(0, 1, s.bv)); g.visible = s.bv > 0.02
+    const bs = (s.as + (s.bs - s.as) * f) * Math.max(0.0001, smooth(0, 1, s.bv)); g.visible = s.bv > 0.02
     this.sA.set(bs, bs * (1 + this.loose * 0.1), bs * (1 + this.loose * 0.12)); g.scale.copy(this.sA)
     this.hit = Math.max(0, this.hit - dt / 1.1); this.band.u.uG.value = lit.glow + this.hit * this.hit * 1.6 + manual.effort * manual.effort * 0.55
     this.band.pose(s.ex, s.xr, env, S.selected, clock)
@@ -170,12 +172,17 @@ export class World {
     u.uHand.value.copy(this.hand.group.matrixWorld).multiply((this.hand as unknown as { inner: THREE.Group }).inner.matrix)
     this.hand.tip('index-finger-tip', this.v); this.hand.tip('thumb-tip', this.v2)
     this.pinch = damp(this.pinch, S.playing && S.trial?.config.requestedGesture === 'pinch' ? smooth(0.5, 0.15, this.v.distanceTo(this.v2)) : 0, 12, dt)
-    u.uPinch.value.set((this.v.x + this.v2.x) / 2, (this.v.y + this.v2.y) / 2, (this.v.z + this.v2.z) / 2, this.pinch)
+    u.uGk.value = s.as * s.as * s.as; u.uPinch.value.set((this.v.x + this.v2.x) / 2, (this.v.y + this.v2.y) / 2, (this.v.z + this.v2.z) / 2, this.pinch)
     this.forms.update(s.wv, s.tr, s.tw, S.playing ? L.t / TRIAL_SECONDS : 1)
     this.portraits.update(s.mi, s.mo)
     this.vel = damp(this.vel, calm ? 0 : scroll.v, 9, dt)
     this.gallery.update(s.la, s.cv, s.yw, this.vel, dt, this.cam, calm ? 0 : pointer.x, calm ? 0 : pointer.y, this.drag)
     this.reveal.update(this.r, dt, now, s.rv, s.rf, s.rc, ar, pointer.x, pointer.y, calm)
+    if (s.cv > 0.01 && s.hv > 0.01) {
+      const i = this.gallery.facing(s.yw), c = this.gallery.colour(i)
+      this.glow.color.setRGB(0.55 + c.x * 0.6, 0.55 + c.y * 0.6, 0.55 + c.z * 0.6); this.glow.intensity = 3.2 * s.cv * s.hv; this.glow.position.copy(this.rig.position).add(this.v.set(-0.6, 2.4, -6))
+      this.rim.intensity = 2.4 * s.cv * s.hv; this.rim.position.copy(this.rig.position).add(this.v.set(3, 1.5, 2.5))
+    } else if (this.glow.intensity) { this.glow.intensity = this.rim.intensity = 0 }
     // a light in the visitor's hand
     this.v.set(pointer.x, pointer.y, 0.5).unproject(this.cam).sub(this.cam.position).normalize().multiplyScalar(dist * 0.62).add(this.cam.position)
     this.torch.position.lerp(this.v, 1 - Math.exp(-dt * 7)); this.torch.intensity = calm || !this.moved ? 0 : 9 * s.to * lit.on

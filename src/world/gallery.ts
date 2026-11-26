@@ -94,6 +94,9 @@ export class Gallery {
       this.sand.uniforms.spin.value = a; this.sandMesh.rotation.y = a
     }
   }
+  /** a decoded gesture turns the ring by exactly one screen */
+  step(dir: number) { this.spinV -= dir * STEP * 2.2 }
+  colour(i: number) { return (this.sand.uniforms.col.value as THREE.Vector3[])[i] }
   /** Which screen the camera is facing. */
   facing(yaw: number) { let b = 0, m = -2; for (let i = 0; i < RING.length; i++) { const c = Math.cos(yaw + this.spin + i * STEP); if (c > m) { m = c; b = i } } return b }
 }

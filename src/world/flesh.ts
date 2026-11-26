@@ -9,7 +9,7 @@ export class Flesh {
   readonly group = new THREE.Group()
   readonly drive = new Uint8Array(DRIVE_W * SOURCES)
   private tex = new THREE.DataTexture(this.drive, DRIVE_W, SOURCES, THREE.RedFormat)
-  readonly u: Record<string, THREE.IUniform> = { uBones: { value: [] }, uHand: { value: new THREE.Matrix4() }, uSkin: { value: 1 }, uFib: { value: 0 }, uPulse: { value: 0 }, uManual: { value: 0 }, uT: { value: 0 }, uTime: { value: 0 }, uDrive: { value: null }, uPinch: { value: new THREE.Vector4() } }
+  readonly u: Record<string, THREE.IUniform> = { uBones: { value: [] }, uHand: { value: new THREE.Matrix4() }, uSkin: { value: 1 }, uFib: { value: 0 }, uPulse: { value: 0 }, uManual: { value: 0 }, uT: { value: 0 }, uTime: { value: 0 }, uDrive: { value: null }, uPinch: { value: new THREE.Vector4() }, uGk: { value: 1 } }
   readonly skin = new THREE.MeshPhysicalMaterial({ color: '#2b2d31', metalness: 0.15, roughness: 0.46, clearcoat: 0.55, clearcoatRoughness: 0.32, envMapIntensity: 1, transparent: true })
   readonly fibre = new THREE.MeshStandardMaterial({ color: '#8d939e', metalness: 0.2, roughness: 0.3, envMapIntensity: 1.2 })
   private strands!: THREE.Mesh
@@ -34,9 +34,9 @@ export class Flesh {
       s.vertexShader = SKIN_V + s.vertexShader
         .replace('#include <beginnormal_vertex>', 'mat4 B=uBones[int(aI.x)]*aW.x+uBones[int(aI.y)]*aW.y+uBones[int(aI.z)]*aW.z+uBones[int(aI.w)]*aW.w;vec3 objectNormal=normalize(mat3(uHand)*(mat3(B)*normal));')
         .replace('#include <begin_vertex>', 'vec3 transformed=(uHand*(B*vec4(position,1.))).xyz;vWp=transformed;vArm=20.*(position.y-.066);vNear=exp(-abs(position.y-.066)*34.);')
-      s.fragmentShader = 'uniform float uSkin,uPulse;uniform vec4 uPinch;varying vec3 vWp;varying float vNear,vArm;\n' + s.fragmentShader
+      s.fragmentShader = 'uniform float uSkin,uPulse,uGk;uniform vec4 uPinch;varying vec3 vWp;varying float vNear,vArm;\n' + s.fragmentShader
         .replace('#include <opaque_fragment>', `float fr=1.-abs(dot(normalize(vViewPosition),normal));float pi=exp(-dot(vWp-uPinch.xyz,vWp-uPinch.xyz)*5.)*uPinch.w;
-          outgoingLight+=vec3(.62,.72,1.)*(vNear*uPulse*.16*(.3+fr)+pi*.3);
+          outgoingLight+=vec3(.62,.72,1.)*(vNear*uPulse*.16*(.3+fr)+pi*.3)*uGk;
           outgoingLight=min(outgoingLight,vec3(2.));
           float gl=pow(fr,2.2);outgoingLight=mix(outgoingLight*(.35+gl)+vec3(.5,.6,.85)*gl*.35,outgoingLight,uSkin);diffuseColor.a=mix(clamp(.06+gl*.75,0.,1.),1.,uSkin);float af=smoothstep(10.,5.5,vArm);outgoingLight*=af;diffuseColor.a*=smoothstep(0.,.5,af);
           #include <opaque_fragment>`)

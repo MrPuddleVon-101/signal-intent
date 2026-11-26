@@ -9,7 +9,7 @@ export const BASE = {
   lt: 0, ac: 0, key: 1,
   mi: 0, mo: 0, wv: 0, tr: 0, tw: 0,
   // page: grey studio, framed print, torch. portrait: shown, taken over, cropped. photographs: ladder, cavern, ring angle
-  gy: 0, fr: 0, to: 0, rv: 0, rf: 0, rc: 0, la: 0, cv: 0, yw: 0, cm: 0, cr: 0,
+  gy: 0, fr: 0, to: 0, rv: 0, rf: 0, rc: 0, la: 0, cv: 0, yw: 0, cm: 0, cr: 0, ax: 0, ay: 0, az: 0, as: 1, ap: 0,
 }
 export type ShotState = typeof BASE
 export interface Shot { at: string; p: number; s: Partial<ShotState>; m?: Partial<ShotState> }
@@ -18,7 +18,9 @@ export const HERO: Partial<ShotState> = { ...ON, cx: 0, cy: 0.7, cz: 9.6, tx: 0,
 const HM: Partial<ShotState> = { cz: 21, fx: 0.05, fy: 0.07 }
 const A0 = [0.2, 0.35, 0.5, 0.65, 0.8, 0.95]
 const rung = (i: number, k = 1, roll = 0): Partial<ShotState> => { const q = RUNGS[i]; return { ...OFF, la: 1, lt: 1, cx: q.x * 0.5, cy: TOP + q.y + 0.6, cz: 11.5 * k, tx: q.x * 0.62, ty: TOP + q.y - 0.2, tz: 0, fov: 34, roll } }
-const ring = (i: number, o: Partial<ShotState> = {}): Partial<ShotState> => ({ cv: 1, bf: 1, bx: 1.7, by: D + 0.35, bz: 0, brx: 0.5, bry: 0.9, brz: 0.35, bs: 1.5, cx: 0, cy: D + 2.1, cz: 8.4, tx: 0, ty: D + 2.35, tz: -RAD, fov: 36, yw: -i * STEP, ...o })
+/** Underground, you are the one wearing it: your own arm, the band on its wrist, low in the frame. */
+export const POV: Partial<ShotState> = { hv: 1, bf: 0, skin: 1, fib: 0.16, ax: 1.2, ay: D + 1.35, az: 4.6, as: 0.5, ap: 0.25, arx: -0.6, ary: 2.6, arz: 0.15 }
+const ring = (i: number, o: Partial<ShotState> = {}): Partial<ShotState> => ({ cv: 1, ...POV, cx: 0, cy: D + 2.1, cz: 8.4, tx: 0, ty: D + 2.35, tz: -RAD, fov: 36, yw: -i * STEP, ...o })
 export const SHOTS: Shot[] = [
   { at: 'try', p: 0, s: HERO, m: HM },
   { at: 'try', p: 0.1, s: { ...HERO, arx: 2.7 }, m: HM },
@@ -97,13 +99,13 @@ export const SHOTS: Shot[] = [
   { at: 'ladder', p: 0.915, s: { ...OFF, la: 1, lt: 0, cx: 0, cy: FLOOR - 4, cz: 0.65, tx: 0, ty: FLOOR - 34, tz: 0, fov: 64, roll: 0.16 }, m: { fov: 82 } },
   { at: 'ladder', p: 0.985, s: { ...OFF, la: 1, cx: 0, cy: FLOOR - 26, cz: 0.5, tx: 0, ty: FLOOR - 60, tz: 0, fov: 64, roll: 0.3 }, m: { fov: 84 } },
   // black. then, far below, the screens wake one by one
-  { at: 'ladder', p: 1, s: { ...ring(0), cv: 0, bv: 0, cm: 1, cr: 0, fov: 46, yw: -0.5 }, m: { fov: 70 } },
-  { at: 'atmos', p: 0.05, s: { ...ring(0), cv: 1, bv: 0, cm: 1, cr: 0, fov: 46, yw: -0.28 }, m: { fov: 70 } },
+  { at: 'ladder', p: 1, s: { ...ring(0), cv: 0, bv: 0, hv: 0, cm: 1, cr: 0, fov: 46, yw: -0.5 }, m: { fov: 70 } },
+  { at: 'atmos', p: 0.05, s: { ...ring(0), cv: 1, bv: 0, hv: 0, cm: 1, cr: 0, fov: 46, yw: -0.28 }, m: { fov: 70 } },
     ...A0.flatMap((a, i): Shot[] => [{ at: 'atmos', p: a, s: ring(i, { cm: 1, cr: 1 }), m: { fov: 62 } }, { at: 'atmos', p: a + 0.04, s: ring(i, { cm: 1, cr: 1 }), m: { fov: 62 } }]),
-  { at: 'atmos', p: 1, s: ring(RING.length - 1, { cy: D + 2.15, cz: 8.39, bv: 0 }), m: { fov: 62 } },
+  { at: 'atmos', p: 1, s: ring(RING.length - 1, { cy: D + 2.15, cz: 8.39 }), m: { fov: 62 } },
   // through the lens
-  { at: 'lens', p: 0.19, s: ring(RING.length - 1, { cx: 2.05, cy: D + 3.5, cz: -RAD + 5, tx: 2.05, ty: D + 3.5, tz: -RAD, fov: 36, bv: 0 }) },
-  { at: 'lens', p: 0.25, s: { ...ring(RING.length - 1), ...OFF, cx: 2.05, cy: D + 3.5, cz: -RAD + 4.2, tx: 2.05, ty: D + 3.5, tz: -RAD, cv: 0, fov: 36 } },
+  { at: 'lens', p: 0.19, s: ring(RING.length - 1, { cx: 2.05, cy: D + 3.5, cz: -RAD + 5, tx: 2.05, ty: D + 3.5, tz: -RAD, fov: 36, hv: 0, bv: 0 }) },
+  { at: 'lens', p: 0.25, s: { ...ring(RING.length - 1), ...OFF, hv: 0, cx: 2.05, cy: D + 3.5, cz: -RAD + 4.2, tx: 2.05, ty: D + 3.5, tz: -RAD, cv: 0, fov: 36 } },
   { at: 'lens', p: 0.34, s: { ...OFF, cz: 12 } },
   { at: 'lens', p: 0.6, s: { ...ON, hv: 0, bv: 0, cx: 0, cy: 0.6, cz: 13, ty: 0.6, arx: 2.2, arz: H } },
   { at: 'lens', p: 0.64, s: { ...ON, cx: 0, cy: 0.6, cz: 12, ty: 0.6, fx: 0.3, arx: 2.3, ary: P, arz: H, gy: 0.5 }, m: { cz: 16, fx: 0 } },

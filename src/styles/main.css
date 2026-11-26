@@ -253,3 +253,12 @@ html:not([data-lit]) .hero-title .tx{transform:translate3d(0,112%,0)!important}
 .sqz-say{display:grid;gap:4px}.sqz-say b{font-family:'Unbounded Variable';font-weight:300;letter-spacing:-.05em;font-size:clamp(1.2rem,1.7vw,1.9rem);line-height:1.1;white-space:nowrap}.sqz-say span{color:#a7acb6;font-size:15.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .units-wrap{position:relative}.ul{position:absolute;right:0;font-size:13.5px;color:#a7acb6;background:#050506cc;padding:1px 6px}.ul.a{top:-12px}.ul.b{top:60%;transform:translateY(-30%)}
 @media (max-width:900px){.sqz{width:72px;height:72px}.units{height:150px}.unit-fig{bottom:14vh}}
+
+/* underground, you are wearing the glasses */
+.lens-edge{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 105% at 50% 46%,transparent 62%,rgba(0,0,0,.55) 88%,#000 100%);opacity:0;transition:opacity 1.2s}#atmos .stick:has(.in-lens[data-s=on]) .lens-edge{opacity:1}
+.in-lens{right:calc(var(--pad) + 4vw);top:18vh;pointer-events:none}
+.disp{display:grid;gap:6px;min-width:240px;padding:18px 20px 16px;border-radius:22px;background:rgba(20,24,34,.42);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 0 40px rgba(120,150,255,.12);color:#fff;transform:perspective(900px) rotateY(-9deg);animation:dispin .9s var(--out)}
+.disp b{font-family:'Unbounded Variable';font-weight:300;letter-spacing:-.04em;font-size:clamp(1.3rem,1.9vw,2rem);line-height:1.15;animation:pop2 .8s var(--out)}.d-k{font-size:12.5px;color:#9fb4ff;font-variant-numeric:tabular-nums}.d-n{font-size:14px;color:#c9cdd6}.d-h{font-size:12.5px;color:#8d93a0;margin-top:4px}
+@keyframes dispin{from{opacity:0;transform:perspective(900px) rotateY(-9deg) translate3d(0,14px,0)}}
+.at-dock{left:var(--pad);bottom:5vh;display:grid;gap:8px}
+@media (max-width:900px){.in-lens{right:var(--pad);top:96px}.disp{min-width:0;padding:14px 16px;border-radius:18px}.at-dock .tiny{display:none}}
